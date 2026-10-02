@@ -1,0 +1,618 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Vince Intercom</title>
+
+<style>
+:root{
+  --bg:#070a10;
+  --panel:rgba(255,255,255,.07);
+  --line:rgba(255,255,255,.12);
+  --text:#f6f8fb;
+  --muted:#8e98a8;
+  --blue:#55b8ff;
+  --green:#57e389;
+  --red:#ff5f68;
+}
+*{box-sizing:border-box}
+html,body{
+  margin:0;
+  width:100%;
+  min-height:100%;
+  background:#070a10;
+  color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;
+}
+body{
+  background:
+    radial-gradient(circle at 20% 0%,rgba(70,150,255,.14),transparent 35%),
+    radial-gradient(circle at 90% 100%,rgba(100,70,255,.10),transparent 35%),
+    #070a10;
+  min-height:100vh;
+}
+.hidden{display:none!important}
+
+/* iPad */
+#controller{
+  min-height:100vh;
+  padding:26px;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 330px;
+  gap:22px;
+}
+.card{
+  border:1px solid var(--line);
+  background:var(--panel);
+  -webkit-backdrop-filter:blur(24px);
+  backdrop-filter:blur(24px);
+  border-radius:30px;
+  box-shadow:0 25px 80px rgba(0,0,0,.35);
+}
+.main{
+  padding:34px;
+  display:flex;
+  flex-direction:column;
+  min-height:calc(100vh - 52px);
+}
+.brand{display:flex;align-items:center;justify-content:space-between;gap:20px}
+.brand h1{margin:0;font-size:30px;letter-spacing:-1px}
+.status{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:14px}
+.dot{width:9px;height:9px;border-radius:50%;background:#6f7784}
+.dot.ok{background:var(--green);box-shadow:0 0 16px rgba(87,227,137,.55)}
+
+.center{
+  flex:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+  gap:26px;
+}
+.talk{
+  width:min(46vw,330px);
+  max-width:330px;
+  aspect-ratio:1/1;
+  border:none;
+  border-radius:50%;
+  color:white;
+  font-size:34px;
+  font-weight:750;
+  background:radial-gradient(circle at 30% 20%,#8bd3ff,#3e9fff 35%,#2767ff 72%,#183c9a);
+  box-shadow:
+    inset 0 2px 1px rgba(255,255,255,.35),
+    0 0 0 14px rgba(85,184,255,.06),
+    0 25px 80px rgba(38,110,255,.35);
+}
+.talk.live{
+  background:radial-gradient(circle at 30% 20%,#ff9d9d,#ff5f68 36%,#c72135 75%);
+}
+.bigstate{font-size:18px;color:var(--muted);text-align:center}
+.mainMeter{height:42px;display:flex;align-items:center;gap:5px}
+.mainMeter span,.phoneBars span{
+  display:block;
+  width:6px;
+  height:10px;
+  background:rgba(255,255,255,.25);
+  border-radius:99px;
+  transition:height .08s ease,opacity .08s ease;
+}
+
+.side{
+  padding:24px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  min-height:calc(100vh - 52px);
+}
+.side h2{font-size:19px;margin:2px 0 5px}
+.side p{font-size:13px;color:var(--muted);text-align:center;line-height:1.45;margin:0 0 18px}
+
+#qrcode{
+  width:248px;
+  min-height:248px;
+  background:#fff;
+  color:#111;
+  border-radius:24px;
+  padding:14px;
+  margin:auto 0 18px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  font-size:14px;
+  line-height:1.4;
+}
+#qrcode img,#qrcode canvas{display:block!important;max-width:100%;height:auto!important}
+.code{
+  font:600 12px ui-monospace,SFMono-Regular,Menlo,monospace;
+  color:#b5bfd0;
+  word-break:break-all;
+  text-align:center;
+}
+.smallStatus{
+  margin-top:auto;
+  width:100%;
+  padding:14px 15px;
+  border-radius:18px;
+  background:rgba(255,255,255,.05);
+  font-size:13px;
+  color:var(--muted);
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+}
+.smallStatus strong{color:white}
+
+/* iPhone */
+#receiver{
+  min-height:100vh;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:30px 20px;
+}
+.receiverInner{text-align:center;width:100%;max-width:480px}
+.receiverTitle{
+  font-size:13px;color:var(--muted);
+  letter-spacing:.16em;text-transform:uppercase;
+  margin-bottom:44px
+}
+.phoneBars{
+  height:150px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+}
+.phoneBars span{
+  width:7px;
+  height:18px;
+  background:linear-gradient(to top,#4f96ff,#90d9ff);
+}
+.listenState{margin-top:28px;color:var(--muted);font-size:14px}
+.liveLabel{color:white;font-weight:650}
+
+#unlock{
+  position:fixed;
+  inset:0;
+  z-index:20;
+  background:rgba(7,10,16,.96);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:30px;
+}
+.unlockBox{text-align:center;max-width:330px}
+.unlockIcon{font-size:48px;margin-bottom:18px}
+.unlockBox h2{margin:0 0 10px;font-size:27px}
+.unlockBox p{margin:0 0 24px;color:var(--muted);line-height:1.45}
+.unlockBtn{
+  width:100%;
+  border:0;
+  border-radius:18px;
+  padding:16px 18px;
+  color:white;
+  font-size:17px;
+  font-weight:700;
+  background:linear-gradient(135deg,#3ca8ff,#685cff);
+}
+
+#errorBox{
+  position:fixed;
+  left:16px;
+  right:16px;
+  bottom:16px;
+  padding:14px 16px;
+  border-radius:17px;
+  color:#ffdadd;
+  background:rgba(120,20,30,.9);
+  border:1px solid rgba(255,100,120,.25);
+  font-size:13px;
+  display:none;
+  z-index:50;
+}
+
+@media(max-width:800px){
+  #controller{
+    grid-template-columns:1fr;
+    padding:14px;
+  }
+  .main,.side{min-height:auto}
+  .talk{width:min(70vw,300px)}
+}
+</style>
+</head>
+
+<body>
+
+<section id="controller">
+  <div class="card main">
+    <div class="brand">
+      <h1>Vince Intercom</h1>
+      <div class="status">
+        <span id="receiverDot" class="dot"></span>
+        <span id="receiverStatus">En attente de l’iPhone</span>
+      </div>
+    </div>
+
+    <div class="center">
+      <button id="talkBtn" class="talk">PARLER</button>
+      <div id="talkState" class="bigstate">Scanne d’abord le QR code avec l’iPhone</div>
+      <div id="mainMeter" class="mainMeter"></div>
+    </div>
+  </div>
+
+  <aside class="card side">
+    <h2>Connecter l’iPhone</h2>
+    <p>Scanne ce QR code avec l’iPhone. La page récepteur s’ouvrira automatiquement.</p>
+
+    <div id="qrcode">
+      Chargement du QR code…
+    </div>
+
+    <div id="sessionCode" class="code">Création de la session…</div>
+
+    <div class="smallStatus">
+      <span>Connexion</span>
+      <strong id="linkState">Initialisation…</strong>
+    </div>
+  </aside>
+</section>
+
+<section id="receiver">
+  <div class="receiverInner">
+    <div class="receiverTitle">Vince Intercom</div>
+    <div id="phoneBars" class="phoneBars"></div>
+    <div id="listenState" class="listenState">Connexion à l’iPad…</div>
+  </div>
+
+  <div id="unlock">
+    <div class="unlockBox">
+      <div class="unlockIcon">🔊</div>
+      <h2>Récepteur audio</h2>
+      <p>Appuie une fois pour autoriser l’iPhone à diffuser le son.</p>
+      <button id="unlockBtn" class="unlockBtn">ACTIVER LE SON</button>
+    </div>
+  </div>
+</section>
+
+<div id="errorBox"></div>
+
+<script>
+(function(){
+
+  function $(id){ return document.getElementById(id); }
+
+  function error(msg){
+    var box = $("errorBox");
+    if(box){
+      box.textContent = msg;
+      box.style.display = "block";
+    }
+  }
+
+  function makeBars(id,count){
+    var c = $(id);
+    if(!c) return;
+    for(var i=0;i<count;i++){
+      var s=document.createElement("span");
+      c.appendChild(s);
+    }
+  }
+
+  makeBars("mainMeter",28);
+  makeBars("phoneBars",25);
+
+  var params = new URLSearchParams(window.location.search);
+  var receiverMode = params.get("receiver")==="1";
+  var hostId = params.get("host");
+
+  if(receiverMode){
+    $("controller").style.display="none";
+    $("receiver").style.display="flex";
+  }else{
+    $("controller").style.display="grid";
+    $("receiver").style.display="none";
+  }
+
+  function animateBars(analyser,id){
+    var bars = Array.prototype.slice.call($(id).querySelectorAll("span"));
+    var data = new Uint8Array(analyser.frequencyBinCount);
+    var stopped=false;
+
+    function tick(){
+      if(stopped) return;
+      analyser.getByteFrequencyData(data);
+
+      for(var i=0;i<bars.length;i++){
+        var index=Math.min(data.length-1,Math.floor(i*data.length/bars.length));
+        var v=data[index]/255;
+        var min=id==="phoneBars"?18:8;
+        var max=id==="phoneBars"?118:37;
+        bars[i].style.height=(min+v*max)+"px";
+        bars[i].style.opacity=(0.3+v*0.7);
+      }
+
+      requestAnimationFrame(tick);
+    }
+    tick();
+
+    return function(){
+      stopped=true;
+      for(var i=0;i<bars.length;i++){
+        bars[i].style.height=id==="phoneBars"?"18px":"10px";
+      }
+    };
+  }
+
+  function loadScript(src,done,fail){
+    var s=document.createElement("script");
+    s.src=src;
+    s.onload=done;
+    s.onerror=fail;
+    document.head.appendChild(s);
+  }
+
+  function ensureLibraries(callback){
+    var peerReady = typeof window.Peer !== "undefined";
+    var qrReady = typeof window.QRCode !== "undefined";
+
+    function maybe(){
+      if(peerReady && qrReady) callback();
+    }
+
+    if(!peerReady){
+      loadScript(
+        "https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js",
+        function(){ peerReady=true; maybe(); },
+        function(){ error("PeerJS n’a pas pu se charger. Vérifie la connexion Internet."); }
+      );
+    }
+
+    if(!qrReady){
+      loadScript(
+        "https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js",
+        function(){ qrReady=true; maybe(); },
+        function(){
+          $("qrcode").textContent="QR code indisponible. Ouvre cette page via une adresse HTTPS.";
+          error("La bibliothèque QR Code n’a pas pu se charger.");
+        }
+      );
+    }
+
+    maybe();
+  }
+
+  function initController(){
+    var peer=null;
+    var receiverPeerId=null;
+    var localStream=null;
+    var activeCall=null;
+    var transmitting=false;
+    var audioCtx=null;
+    var stopMeter=null;
+
+    try{
+      peer = new Peer();
+
+      peer.on("open",function(id){
+        $("linkState").textContent="Prêt";
+        $("sessionCode").textContent=id;
+
+        if(location.protocol==="file:"){
+          $("qrcode").innerHTML="Le mode test local affiche l’interface, mais le QR code audio nécessite un hébergement HTTPS.";
+          error("Pour le vrai micro + iPhone, héberge ce fichier en HTTPS, par exemple sur GitHub Pages.");
+          return;
+        }
+
+        var u=new URL(location.href);
+        u.search="";
+        u.hash="";
+        u.searchParams.set("receiver","1");
+        u.searchParams.set("host",id);
+
+        $("qrcode").innerHTML="";
+        new QRCode($("qrcode"),{
+          text:u.toString(),
+          width:220,
+          height:220,
+          correctLevel:QRCode.CorrectLevel.M
+        });
+      });
+
+      peer.on("connection",function(conn){
+        conn.on("data",function(data){
+          if(data && data.type==="receiver-ready" && data.id){
+            receiverPeerId=data.id;
+            $("receiverDot").classList.add("ok");
+            $("receiverStatus").textContent="iPhone connecté";
+            $("linkState").textContent="Connecté";
+            $("talkState").textContent="Appuie sur PARLER pour commencer";
+          }
+        });
+      });
+
+      peer.on("error",function(e){
+        error("Erreur de connexion : "+(e.type||"inconnue"));
+      });
+
+    }catch(e){
+      error("Impossible de démarrer la connexion WebRTC.");
+    }
+
+    $("talkBtn").addEventListener("click",async function(){
+      if(!receiverPeerId){
+        error("Connecte d’abord l’iPhone avec le QR code.");
+        return;
+      }
+
+      if(!transmitting){
+        try{
+          localStream = localStream || await navigator.mediaDevices.getUserMedia({
+            audio:{
+              echoCancellation:true,
+              noiseSuppression:true,
+              autoGainControl:true
+            },
+            video:false
+          });
+
+          activeCall = peer.call(receiverPeerId,localStream);
+
+          transmitting=true;
+          $("talkBtn").classList.add("live");
+          $("talkBtn").textContent="STOP";
+          $("talkState").textContent="Micro en direct vers l’iPhone";
+
+          audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)();
+          await audioCtx.resume();
+
+          var source=audioCtx.createMediaStreamSource(localStream);
+          var analyser=audioCtx.createAnalyser();
+          analyser.fftSize=128;
+          source.connect(analyser);
+
+          if(stopMeter) stopMeter();
+          stopMeter=animateBars(analyser,"mainMeter");
+
+        }catch(e){
+          error("Le micro n’est pas accessible. Autorise le microphone dans Safari.");
+        }
+
+      }else{
+        if(activeCall){
+          activeCall.close();
+          activeCall=null;
+        }
+
+        transmitting=false;
+        $("talkBtn").classList.remove("live");
+        $("talkBtn").textContent="PARLER";
+        $("talkState").textContent="Transmission arrêtée";
+
+        if(stopMeter){
+          stopMeter();
+          stopMeter=null;
+        }
+      }
+    });
+  }
+
+  function initReceiver(){
+    if(!hostId){
+      error("Lien de session invalide.");
+      return;
+    }
+
+    var peer=null;
+    var conn=null;
+    var unlocked=false;
+    var audioEl=null;
+    var audioCtx=null;
+    var pendingStream=null;
+    var stopBars=null;
+
+    function ensureAudio(){
+      if(!audioEl){
+        audioEl=document.createElement("audio");
+        audioEl.autoplay=true;
+        audioEl.playsInline=true;
+        audioEl.setAttribute("playsinline","");
+        document.body.appendChild(audioEl);
+      }
+    }
+
+    async function playStream(stream){
+      pendingStream=stream;
+      if(!unlocked) return;
+
+      ensureAudio();
+      audioEl.srcObject=stream;
+
+      try{
+        await audioEl.play();
+      }catch(e){}
+
+      if(audioCtx){
+        var analyser=audioCtx.createAnalyser();
+        analyser.fftSize=128;
+        var src=audioCtx.createMediaStreamSource(stream);
+        src.connect(analyser);
+
+        if(stopBars) stopBars();
+        stopBars=animateBars(analyser,"phoneBars");
+      }
+
+      $("listenState").innerHTML='<span class="liveLabel">● EN DIRECT</span>';
+    }
+
+    $("unlockBtn").addEventListener("click",async function(){
+      unlocked=true;
+      ensureAudio();
+
+      audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)();
+      await audioCtx.resume();
+
+      $("unlock").style.display="none";
+      $("listenState").textContent="Prêt — en attente de la voix";
+
+      if(pendingStream) playStream(pendingStream);
+    });
+
+    try{
+      peer=new Peer();
+
+      peer.on("open",function(id){
+        conn=peer.connect(hostId,{reliable:true});
+
+        conn.on("open",function(){
+          conn.send({type:"receiver-ready",id:id});
+        });
+      });
+
+      peer.on("call",function(call){
+        call.answer();
+
+        call.on("stream",function(stream){
+          playStream(stream);
+        });
+
+        call.on("close",function(){
+          $("listenState").textContent="Prêt — en attente de la voix";
+
+          if(stopBars){
+            stopBars();
+            stopBars=null;
+          }
+
+          if(audioEl){
+            audioEl.srcObject=null;
+          }
+        });
+      });
+
+      peer.on("error",function(e){
+        error("Connexion iPhone impossible : "+(e.type||"inconnue"));
+      });
+
+    }catch(e){
+      error("WebRTC n’est pas disponible.");
+    }
+  }
+
+  ensureLibraries(function(){
+    if(receiverMode){
+      initReceiver();
+    }else{
+      initController();
+    }
+  });
+
+})();
+</script>
+</body>
+</html>
